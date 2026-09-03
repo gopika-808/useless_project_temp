@@ -8,7 +8,8 @@ async function createUser() {
   await addDoc(collection(db, "users"), {
     name: "Aaron S Christo",
     username: "aaronchristo",
-    department: "CS3C",
+    department: "CSC",
+    year:"3'"
     crushRadar: "",
     bluetoothId: ""
   });
