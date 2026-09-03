@@ -65,18 +65,26 @@ function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
 }
 
 function getHumorCommentary(meters, isMutual) {
-  if (meters === null) return "Location lost in the ether. Maybe they're in an elevator or tunnel.";
+  if (meters === null) return "✨ Signal floating in the ether. Waiting for GPS satellites to align!";
+  
   if (isMutual) {
-    if (meters < 10) return "🚨 THEY ARE LITERALLY RIGHT NEXT TO YOU. STOP LOOKING AT THE SCREEN AND TALK!";
-    if (meters < 40) return "🚨 MAXIMUM DANGER: Mutual crush is within waving distance! Go over!";
-    return `🚨 IT'S MUTUAL! They are ${meters}m away. Deploy confidence and walk over!`;
+    if (meters <= 5) return "🚨 EMERGENCY ROMANCE PROTOCOL: They are within 5 meters! Put your phone down, make eye contact, and say literally anything! 💘";
+    if (meters <= 15) return "🚨 SIGHTLINE LOCKED: They're right across the room! Drop your best smile or trip casually over a chair. It's mutual!";
+    if (meters <= 40) return "🚨 PROXIMITY CRITICAL: Same hall / room! The radar is screaming. Walk over right now, they already crushed back! 🏃‍♂️💨";
+    if (meters <= 90) return "🎯 TACTICAL SPRINT DISTANCE: In the same building! Walk like you have very important business near them.";
+    if (meters <= 250) return "💌 CAMPUS VICINITY: Less than a 2-minute stroll away. Head toward the pulsing radar blip!";
+    if (meters <= 600) return "📡 RADAR HOMING: Roaming in the neighborhood. Watch their live trail close the gap!";
+    return `💘 LONG-RANGE DESTINY: ${meters}m away. Distance is merely a statistic when feelings are mutual!`;
   }
-  if (meters < 5) return "They are breathing your oxygen. Do NOT make accidental eye contact.";
-  if (meters < 20) return "Within awkward smile range. Stare deeply into your phone notes.";
-  if (meters < 60) return "In the same room or hall! Walk casually, you look cool.";
-  if (meters < 250) return "Within quick sprint radius. Prepare witty conversational material.";
-  if (meters < 1000) return "In the neighborhood. Safe for now, but keep radar active.";
-  return "Far away! Your pulse has permission to drop back to normal.";
+
+  // One-sided locked crush
+  if (meters <= 4) return "⚠️ CRITICAL HAZARD: You are sharing the exact same air molecule! DO NOT PANIC. Stare intensely at a wall or pretend you're checking flight tickets.";
+  if (meters <= 12) return "👀 EYE-CONTACT DANGER ZONE: They are right there! Rehearse a completely normal human sentence 3 times in your head.";
+  if (meters <= 35) return "☕ SAME ROOM RADIUS: You can probably hear their laugh. Casual nonchalance mode: ACTIVATED.";
+  if (meters <= 80) return "🚪 SAME BUILDING: Close enough for a dramatic movie hallway pass. Fix your hair quickly.";
+  if (meters <= 200) return "🚶 WALKING DISTANCE: Far enough that your elevated heart rate won't register on nearby seismographs.";
+  if (meters <= 600) return "🌿 IN THE NEIGHBORHOOD: Probably getting snacks or fighting for their life in an 8 AM lecture.";
+  return `🕊️ SAFE TERRITORY (${meters}m): Zero chance of accidental eye contact. Your dignity remains completely intact.`;
 }
 
 // -------------------------------------------------------------
@@ -156,7 +164,7 @@ const server = http.createServer(async (req, res) => {
     // AUTH: Sign Up with consent
     if (pathname === '/api/auth/signup' && req.method === 'POST') {
       const body = await parseJsonBody(req);
-      const { username, name, department, year, avatar_emoji, consentGiven } = body;
+      const { username, name, department, batch, year, avatar_emoji, consentGiven } = body;
 
       if (!consentGiven) {
         return sendJson(res, 400, {
@@ -179,7 +187,7 @@ const server = http.createServer(async (req, res) => {
         user = store.users[existingId];
         if (name) user.name = name;
         if (department) user.department = department;
-        if (year) user.year = year;
+        if (batch || year) user.batch = batch || year;
         if (avatar_emoji) user.avatar_emoji = avatar_emoji;
       } else {
         const id = 'user_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
@@ -187,8 +195,9 @@ const server = http.createServer(async (req, res) => {
           id,
           username: cleanUsername,
           name: name || cleanUsername,
-          department: department || 'General',
-          year: year || '1',
+          department: department || 'Campus',
+          batch: batch || year || '2026',
+          year: year || batch || '1',
           avatar_emoji: avatar_emoji || '🕵️',
           ghost_mode: false,
           consent_given: true,
@@ -290,6 +299,7 @@ const server = http.createServer(async (req, res) => {
           username: u.username,
           name: u.name,
           department: u.department,
+          batch: u.batch || u.year || '2026',
           year: u.year,
           avatar_emoji: u.avatar_emoji,
           lat: loc.lat,
@@ -329,6 +339,7 @@ const server = http.createServer(async (req, res) => {
             username: u.username,
             name: u.name,
             department: u.department,
+            batch: u.batch || u.year || '2026',
             year: u.year,
             avatar_emoji: u.avatar_emoji,
             hasLocation: !!loc,
@@ -483,6 +494,7 @@ const server = http.createServer(async (req, res) => {
             username: u.username,
             name: u.name,
             department: u.department,
+            batch: u.batch || u.year || '2026',
             year: u.year,
             avatar_emoji: u.avatar_emoji,
             isMutual,
